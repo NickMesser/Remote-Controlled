@@ -77,7 +77,7 @@ public class RemoteControl extends Item {
             }
             else if(blockState != null)
             {
-                blockState.onUse(world, user, hand,lookingAt);
+                blockState.getBlock().onUse(blockState, world, storedPositon, user, hand, lookingAt);
             }
             else{
                 clear_nbt(stackInHand);
