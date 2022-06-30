@@ -7,7 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -54,7 +54,7 @@ public class RemoteControl extends Item {
 
             if(blockWorld == null) {
                 clear_nbt(stackInHand);
-                user.sendMessage(new LiteralText("Block cannot be found."), true);
+                user.sendMessage(Text.literal("Block cannot be found."), true);
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -64,7 +64,7 @@ public class RemoteControl extends Item {
             if(blockState == null || blockState.getBlock() == Blocks.AIR)
             {
                 clear_nbt(stackInHand);
-                user.sendMessage(new LiteralText("Block cannot be found."), true);
+                user.sendMessage(Text.literal("Block cannot be found."), true);
                 return TypedActionResult.fail(stackInHand);
             }
 
