@@ -1,5 +1,6 @@
 package net.messer.remote_controlled.item.custom;
 
+import net.messer.remote_controlled.RemoteControlled;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
@@ -41,6 +42,13 @@ public class RemoteControl extends Item {
 
             if(foundBlockState == null || foundBlockState.getBlock() == Blocks.AIR)
                 return TypedActionResult.fail(stackInHand);
+
+            var block = Registry.BLOCK.getId(foundBlockState.getBlock()).toString();
+            if(RemoteControlled.CONFIG.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
+                user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
+                return TypedActionResult.fail(stackInHand);
+            }
+
 
             write_npt(stackInHand,lookingAt, world);
 
