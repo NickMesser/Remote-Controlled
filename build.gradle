@@ -17,7 +17,8 @@ repositories {
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
 
-	maven { url 'https://jitpack.io' }
+	maven { url "https://jitpack.io" }
+	maven { url "https://maven.shedaniel.me/"}
 }
 
 dependencies {
@@ -29,11 +30,15 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	implementation("com.github.LlamaLad7:MixinExtras:0.0.11")
-	annotationProcessor("com.github.LlamaLad7:MixinExtras:0.0.11")
+	//Mixin Extras
+	implementation("com.github.LlamaLad7:MixinExtras:${project.mixin_extras}")
+	annotationProcessor("com.github.LlamaLad7:MixinExtras:${project.mixin_extras}")
 
+	//Cloth Config
+	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
 }
-
 processResources {
 	inputs.property "version", project.version
 
