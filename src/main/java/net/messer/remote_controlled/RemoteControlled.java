@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class RemoteControlled implements ModInitializer {
 
 	public static final String MOD_ID = "remote_controlled";
-	public static final Logger LOGGER = LoggerFactory.getLogger("modid");
+	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static RemoteConfig CONFIG;
 
 	@Override

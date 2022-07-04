@@ -4,7 +4,6 @@
   "package": "net.messer.remote_controlled.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ExampleMixin",
     "PlayerEntityMixin"
   ],
   "client": [

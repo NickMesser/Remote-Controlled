@@ -1,9 +1,10 @@
 package net.messer.remote_controlled.item.custom;
 
 import net.messer.remote_controlled.RemoteControlled;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -18,13 +19,16 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 
 
 public class RemoteControl extends Item {
     BlockPos blockPosition;
     String blockWorldID;
+    Block storedBlock;
 
     public RemoteControl(Settings settings) {
         super(settings);
@@ -43,14 +47,13 @@ public class RemoteControl extends Item {
             if(foundBlockState == null || foundBlockState.getBlock() == Blocks.AIR)
                 return TypedActionResult.fail(stackInHand);
 
-            var block = Registry.BLOCK.getId(foundBlockState.getBlock()).toString();
             if(RemoteControlled.CONFIG.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
                 user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
                 return TypedActionResult.fail(stackInHand);
             }
 
 
-            write_npt(stackInHand,lookingAt, world);
+            write_npt(stackInHand,lookingAt,foundBlockState, world);
 
             return super.use(world, user, hand);
         }
@@ -69,12 +72,16 @@ public class RemoteControl extends Item {
             var blockState = blockWorld.getBlockState(blockPosition);
             var blockEntity = blockWorld.getBlockEntity(blockPosition);
 
-            if(blockState == null || blockState.getBlock() == Blocks.AIR)
+            if(blockState == null || blockState.getBlock() == Blocks.AIR || storedBlock != blockState.getBlock())
             {
                 clear_nbt(stackInHand);
                 user.sendMessage(Text.literal("Block cannot be found."), true);
                 return TypedActionResult.fail(stackInHand);
             }
+
+            if(!canUseRemote(user))
+                return TypedActionResult.fail(stackInHand);
+
 
             if(blockEntity instanceof NamedScreenHandlerFactory)
             {
@@ -83,8 +90,13 @@ public class RemoteControl extends Item {
             else{
                 blockState.getBlock().onUse(blockState, blockWorld, blockPosition, user, hand, lookingAt);
             }
+
+            if(RemoteControlled.CONFIG.XpPerUse != -1 && !user.isCreative()) //Only subtract xp if not set to -1
+                user.addExperience(-RemoteControlled.CONFIG.XpPerUse);
+
+            return TypedActionResult.success(stackInHand,true);
         }
-        return TypedActionResult.success(stackInHand,true);
+        return TypedActionResult.fail(stackInHand);
     }
 
     @Override
@@ -92,19 +104,39 @@ public class RemoteControl extends Item {
         return stack.hasNbt();
     }
 
+    private boolean canUseRemote(PlayerEntity user){
+        var config = RemoteControlled.CONFIG;
+
+        if(user.isCreative())
+            return true;
+
+        if(!blockPosition.isWithinDistance(user.getPos(),RemoteControlled.CONFIG.RangeOfRemote) && RemoteControlled.CONFIG.RangeOfRemote != -1)
+        {
+            user.sendMessage(Text.literal("Remote is out of configured range."), true);
+            return false;
+        }
+
+        if(user.totalExperience <= config.XpPerUse && config.XpPerUse != -1 && !user.isCreative()){
+            user.sendMessage(Text.literal("Not enough xp to use remote."), true);
+            return false;
+        }
+
+        return true;
+    }
+
     public void clear_nbt(ItemStack stack){
         var nbt = stack.getOrCreateNbt();
         nbt.remove("pos");
         nbt.remove("world");
+        nbt.remove("block");
         stack.setNbt(nbt);
     }
 
-    public void write_npt(ItemStack stack, BlockHitResult hitResult, World worldOfBlock){
+    public void write_npt(ItemStack stack, BlockHitResult hitResult,  BlockState blockState, World worldOfBlock){
         var nbt = stack.getOrCreateNbt();
-        if(hitResult!= null){
-            nbt.putLong("pos", hitResult.getBlockPos().asLong());
-            nbt.putString("world", worldOfBlock.getRegistryKey().getValue().toString());
-        }
+        nbt.putLong("pos", hitResult.getBlockPos().asLong());
+        nbt.putString("world", worldOfBlock.getRegistryKey().getValue().toString());
+        nbt.putString("block", Registry.BLOCK.getId(blockState.getBlock()).toString());
         stack.setNbt(nbt);
     }
 
@@ -112,5 +144,19 @@ public class RemoteControl extends Item {
         var nbt = stack.getOrCreateNbt();
         this.blockPosition = BlockPos.fromLong(nbt.getLong("pos"));
         this.blockWorldID = nbt.getString("world");
+        this.storedBlock = Registry.BLOCK.get(new Identifier(nbt.getString("block")));
+    }
+
+    @Override
+    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+        if(stack.hasNbt()){
+            read_npt(stack);
+            tooltip.add(Text.literal("§eControlling§r: " + storedBlock.getName().getString()));
+        }
+        else {
+            tooltip.add(Text.literal("§eSHIFT§r + §eRIGHT CLICK§r a block to control it."));
+        }
+
+        super.appendTooltip(stack, world, tooltip, context);
     }
 }
