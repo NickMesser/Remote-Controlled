@@ -110,7 +110,7 @@ public class RemoteControl extends Item {
         if(user.isCreative())
             return true;
 
-        if(!blockPosition.isWithinDistance(user.getPos(),RemoteControlled.CONFIG.RangeOfRemote) && RemoteControlled.CONFIG.RangeOfRemote != -1)
+        if(RemoteControlled.CONFIG.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),RemoteControlled.CONFIG.RangeOfRemote))
         {
             user.sendMessage(Text.literal("Remote is out of configured range."), true);
             return false;
