@@ -9,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -48,7 +49,7 @@ public class RemoteControl extends Item {
                 return TypedActionResult.fail(stackInHand);
 
             if(RemoteControlled.CONFIG.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
-                user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
+                user.sendMessage(new LiteralText("Block is blacklisted from being used by a remote."), true);
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -65,7 +66,7 @@ public class RemoteControl extends Item {
 
             if(blockWorld == null) {
                 clear_nbt(stackInHand);
-                user.sendMessage(Text.literal("Block cannot be found."), true);
+                user.sendMessage(new LiteralText("Block cannot be found."), true);
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -75,7 +76,7 @@ public class RemoteControl extends Item {
             if(blockState == null || blockState.getBlock() == Blocks.AIR || storedBlock != blockState.getBlock())
             {
                 clear_nbt(stackInHand);
-                user.sendMessage(Text.literal("Block cannot be found."), true);
+                user.sendMessage(new LiteralText("Block cannot be found."), true);
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -112,12 +113,12 @@ public class RemoteControl extends Item {
 
         if(RemoteControlled.CONFIG.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),RemoteControlled.CONFIG.RangeOfRemote))
         {
-            user.sendMessage(Text.literal("Remote is out of configured range."), true);
+            user.sendMessage(new LiteralText("Remote is out of configured range."), true);
             return false;
         }
 
         if(user.totalExperience <= config.XpPerUse && config.XpPerUse != -1 && !user.isCreative()){
-            user.sendMessage(Text.literal("Not enough xp to use remote."), true);
+            user.sendMessage(new LiteralText("Not enough xp to use remote."), true);
             return false;
         }
 
@@ -151,10 +152,10 @@ public class RemoteControl extends Item {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         if(stack.hasNbt()){
             read_npt(stack);
-            tooltip.add(Text.literal("§eControlling§r: " + storedBlock.getName().getString()));
+            tooltip.add(new LiteralText("§eControlling§r: " + storedBlock.getName().getString()));
         }
         else {
-            tooltip.add(Text.literal("§eSHIFT§r + §eRIGHT CLICK§r a block to control it."));
+            tooltip.add(new LiteralText("§eSHIFT§r + §eRIGHT CLICK§r a block to control it."));
         }
 
         super.appendTooltip(stack, world, tooltip, context);
