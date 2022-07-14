@@ -1,3 +1,4 @@
 {
-  "item.remote_controlled.remote_control": "Universal Remote"
+  "item.remote_controlled.remote_control": "Universal Remote",
+  "item.remote_controlled.energy_remote_control": "Universal Energy Remote"
 }

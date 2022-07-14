@@ -31,11 +31,15 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//Mixin Extras
-	implementation("com.github.LlamaLad7:MixinExtras:${project.mixin_extras}")
+	include implementation("com.github.LlamaLad7:MixinExtras:${project.mixin_extras}")
 	annotationProcessor("com.github.LlamaLad7:MixinExtras:${project.mixin_extras}")
 
 	//Cloth Config
-	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
+	include modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+
+	include modApi("teamreborn:energy:${project.energy_api}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 }

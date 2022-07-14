@@ -13,6 +13,9 @@ public class ModItems {
     public static final Item REMOTE_CONTROL = registerItem("remote_control",
             new RemoteControl(new FabricItemSettings().group(ItemGroup.MISC).maxCount(1)));
 
+    public static final Item ENERGY_REMOTE_CONTROL = registerItem("energy_remote_control",
+            new RemoteControl(new FabricItemSettings().group(ItemGroup.MISC).maxCount(1)));
+
     private static Item registerItem(String name, Item item){
         return Registry.register(Registry.ITEM, new Identifier(RemoteControlled.MOD_ID, name), item);
     }

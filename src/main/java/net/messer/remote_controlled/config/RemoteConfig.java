@@ -22,4 +22,6 @@ public class RemoteConfig  implements ConfigData {
     @ConfigEntry.Gui.CollapsibleObject
     @Comment("How far can the remote work? Default is unlimited at -1. Anything over will also lock the remote to the dimension of the block.")
     public int RangeOfRemote = -1;
+
+    public long EnergyRemoteCapacity = 200000;
 }
