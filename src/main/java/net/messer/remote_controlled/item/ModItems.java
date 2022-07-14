@@ -2,6 +2,7 @@ package net.messer.remote_controlled.item;
 
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.messer.remote_controlled.RemoteControlled;
+import net.messer.remote_controlled.item.custom.EnergyRemoteControl;
 import net.messer.remote_controlled.item.custom.RemoteControl;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -14,7 +15,7 @@ public class ModItems {
             new RemoteControl(new FabricItemSettings().group(ItemGroup.MISC).maxCount(1)));
 
     public static final Item ENERGY_REMOTE_CONTROL = registerItem("energy_remote_control",
-            new RemoteControl(new FabricItemSettings().group(ItemGroup.MISC).maxCount(1)));
+            new EnergyRemoteControl(new FabricItemSettings().group(ItemGroup.MISC).maxCount(1)));
 
     private static Item registerItem(String name, Item item){
         return Registry.register(Registry.ITEM, new Identifier(RemoteControlled.MOD_ID, name), item);

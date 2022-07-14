@@ -23,7 +23,8 @@
     ],
     "preLaunch": [
       "net.messer.remote_controlled.RemoteControlledPreLaunch"
-    ]
+    ],
+    "client": ["net.messer.remote_controlled.client.RemoteControlHud"]
   },
   "mixins": [
     "remote_controlled.mixins.json"

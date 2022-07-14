@@ -2,6 +2,7 @@ package net.messer.remote_controlled.item.custom;
 
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.messer.remote_controlled.RemoteControlled;
+import net.messer.remote_controlled.config.RemoteControlledConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -20,9 +21,9 @@ import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import team.reborn.energy.api.EnergyStorage;
 import team.reborn.energy.api.base.SimpleBatteryItem;
 
+import java.awt.*;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,10 +32,13 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
     BlockPos blockPosition;
     String blockWorldID;
     Block storedBlock;
+    RemoteControlledConfig.EnergyRemoteConfig energyRemoteConfig;
 
     public EnergyRemoteControl(Settings settings) {
         super(settings);
+        this.energyRemoteConfig = RemoteControlled.CONFIG.EnergyRemoteConfig;
     }
+
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         if(world.isClient)
@@ -43,13 +47,15 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
         var stackInHand = user.getStackInHand(hand);
         if(user.isSneaking())
         {
+            this.setStoredEnergy(stackInHand, this.getEnergyCapacity());
+
             BlockHitResult lookingAt = (BlockHitResult) user.raycast(10,0,true);
             BlockState foundBlockState = world.getBlockState(lookingAt.getBlockPos());
 
             if(foundBlockState == null || foundBlockState.getBlock() == Blocks.AIR)
                 return TypedActionResult.fail(stackInHand);
 
-            if(RemoteControlled.CONFIG.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
+            if(energyRemoteConfig.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
                 user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
                 return TypedActionResult.fail(stackInHand);
             }
@@ -86,7 +92,7 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
 
 
             try(Transaction transaction = Transaction.openOuter()){
-                if(this.tryUseEnergy(stackInHand, 4000)){
+                if(this.tryUseEnergy(stackInHand, energyRemoteConfig.EnergyPerUse)){
                     transaction.commit();
                 }
                 else{
@@ -107,34 +113,40 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
         return TypedActionResult.fail(stackInHand);
     }
 
-    @Override
-    public boolean hasGlint(ItemStack stack) {
-        return stack.hasNbt();
-    }
-
     private boolean canUseRemote(PlayerEntity user, ItemStack remoteStack){
-        var config = RemoteControlled.CONFIG;
 
         if(user.isCreative())
             return true;
 
-        if(RemoteControlled.CONFIG.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),RemoteControlled.CONFIG.RangeOfRemote))
+        if(energyRemoteConfig.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),energyRemoteConfig.RangeOfRemote))
         {
             user.sendMessage(Text.literal("Remote is out of configured range."), true);
             return false;
         }
 
-        if(user.totalExperience <= config.XpPerUse && config.XpPerUse != -1 && !user.isCreative()){
-            user.sendMessage(Text.literal("Not enough xp to use remote."), true);
-            return false;
-        }
-
-        if(this.getStoredEnergy(remoteStack) < 4000){
+        if(this.getStoredEnergy(remoteStack) < energyRemoteConfig.EnergyPerUse){
+            user.sendMessage(Text.literal("Not enough power to use remote."), true);
             return false;
         }
 
         return true;
     }
+
+    @Override
+    public boolean isItemBarVisible(ItemStack stack) {
+        return true;
+    }
+
+    @Override
+    public int getItemBarStep(ItemStack stack) {
+        return (int) Math.round(((double)getStoredEnergy(stack) / (double) getEnergyCapacity()) * 13d);
+    }
+
+    @Override
+    public int getItemBarColor(ItemStack stack) {
+        return Color.decode("#00FF00").getRGB();
+    }
+
 
     public void clear_nbt(ItemStack stack){
         var nbt = stack.getOrCreateNbt();
@@ -174,7 +186,7 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
 
     @Override
     public long getEnergyCapacity() {
-        return RemoteControlled.CONFIG.EnergyRemoteCapacity;
+        return energyRemoteConfig.EnergyRemoteCapacity;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package net.messer.remote_controlled.item.custom;
 
 import net.messer.remote_controlled.RemoteControlled;
+import net.messer.remote_controlled.config.RemoteControlledConfig;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -28,10 +29,12 @@ import java.util.Objects;
 public class RemoteControl extends Item {
     BlockPos blockPosition;
     String blockWorldID;
-    Block storedBlock;
+    public Block storedBlock;
+    RemoteControlledConfig.RemoteConfig remoteConfig;
 
     public RemoteControl(Settings settings) {
         super(settings);
+        this.remoteConfig = RemoteControlled.CONFIG.RemoteConfig;
     }
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
@@ -47,7 +50,7 @@ public class RemoteControl extends Item {
             if(foundBlockState == null || foundBlockState.getBlock() == Blocks.AIR)
                 return TypedActionResult.fail(stackInHand);
 
-            if(RemoteControlled.CONFIG.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
+            if(remoteConfig.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
                 user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
                 return TypedActionResult.fail(stackInHand);
             }
@@ -91,8 +94,8 @@ public class RemoteControl extends Item {
                 blockState.getBlock().onUse(blockState, blockWorld, blockPosition, user, hand, lookingAt);
             }
 
-            if(RemoteControlled.CONFIG.XpPerUse != -1 && !user.isCreative()) //Only subtract xp if not set to -1
-                user.addExperience(-RemoteControlled.CONFIG.XpPerUse);
+            if(remoteConfig.XpPerUse != -1 && !user.isCreative()) //Only subtract xp if not set to -1
+                user.addExperience(-remoteConfig.XpPerUse);
 
             return TypedActionResult.success(stackInHand,true);
         }
@@ -105,18 +108,16 @@ public class RemoteControl extends Item {
     }
 
     private boolean canUseRemote(PlayerEntity user){
-        var config = RemoteControlled.CONFIG;
-
         if(user.isCreative())
             return true;
 
-        if(RemoteControlled.CONFIG.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),RemoteControlled.CONFIG.RangeOfRemote))
+        if(remoteConfig.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),remoteConfig.RangeOfRemote))
         {
             user.sendMessage(Text.literal("Remote is out of configured range."), true);
             return false;
         }
 
-        if(user.totalExperience <= config.XpPerUse && config.XpPerUse != -1 && !user.isCreative()){
+        if(user.totalExperience <= remoteConfig.XpPerUse && remoteConfig.XpPerUse != -1 && !user.isCreative()){
             user.sendMessage(Text.literal("Not enough xp to use remote."), true);
             return false;
         }
