@@ -31,7 +31,7 @@ import java.util.Objects;
 public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
     BlockPos blockPosition;
     String blockWorldID;
-    Block storedBlock;
+    public Block storedBlock;
     RemoteControlledConfig.EnergyRemoteConfig energyRemoteConfig;
 
     public EnergyRemoteControl(Settings settings) {
@@ -47,8 +47,6 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
         var stackInHand = user.getStackInHand(hand);
         if(user.isSneaking())
         {
-            this.setStoredEnergy(stackInHand, this.getEnergyCapacity());
-
             BlockHitResult lookingAt = (BlockHitResult) user.raycast(10,0,true);
             BlockState foundBlockState = world.getBlockState(lookingAt.getBlockPos());
 
@@ -56,7 +54,7 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
                 return TypedActionResult.fail(stackInHand);
 
             if(energyRemoteConfig.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
-                user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
+                sendMessage(user, "Block is blacklisted from being used by a remote.");
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -73,7 +71,7 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
 
             if(blockWorld == null) {
                 clear_nbt(stackInHand);
-                user.sendMessage(Text.literal("Block cannot be found."), true);
+                sendMessage(user, "Block cannot be found.");
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -83,20 +81,21 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
             if(blockState == null || blockState.getBlock() == Blocks.AIR || storedBlock != blockState.getBlock())
             {
                 clear_nbt(stackInHand);
-                user.sendMessage(Text.literal("Block cannot be found."), true);
+                sendMessage(user, "Block cannot be found.");
                 return TypedActionResult.fail(stackInHand);
             }
 
             if(!canUseRemote(user, stackInHand))
                 return TypedActionResult.fail(stackInHand);
 
-
-            try(Transaction transaction = Transaction.openOuter()){
-                if(this.tryUseEnergy(stackInHand, energyRemoteConfig.EnergyPerUse)){
-                    transaction.commit();
-                }
-                else{
-                    return TypedActionResult.fail(stackInHand);
+            if(!user.isCreative()){
+                try(Transaction transaction = Transaction.openOuter()){
+                    if(this.tryUseEnergy(stackInHand, energyRemoteConfig.EnergyPerUse)){
+                        transaction.commit();
+                    }
+                    else{
+                        return TypedActionResult.fail(stackInHand);
+                    }
                 }
             }
 
@@ -120,12 +119,12 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
 
         if(energyRemoteConfig.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),energyRemoteConfig.RangeOfRemote))
         {
-            user.sendMessage(Text.literal("Remote is out of configured range."), true);
+            sendMessage(user, "Remote is out of configured range.");
             return false;
         }
 
         if(this.getStoredEnergy(remoteStack) < energyRemoteConfig.EnergyPerUse){
-            user.sendMessage(Text.literal("Not enough power to use remote."), true);
+            sendMessage(user, "Not enough power to use remote.");
             return false;
         }
 
@@ -197,5 +196,9 @@ public class EnergyRemoteControl extends Item  implements SimpleBatteryItem {
     @Override
     public long getEnergyMaxOutput() {
         return 4000;
+    }
+
+    public void sendMessage(PlayerEntity player, String message){
+        player.sendMessage(Text.literal(message), true);
     }
 }

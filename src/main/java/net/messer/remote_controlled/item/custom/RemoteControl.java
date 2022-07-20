@@ -11,7 +11,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
@@ -51,7 +50,7 @@ public class RemoteControl extends Item {
                 return TypedActionResult.fail(stackInHand);
 
             if(remoteConfig.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
-                user.sendMessage(Text.literal("Block is blacklisted from being used by a remote."), true);
+                sendMessage(user, "Block is blacklisted from being used by a remote.");
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -68,7 +67,7 @@ public class RemoteControl extends Item {
 
             if(blockWorld == null) {
                 clear_nbt(stackInHand);
-                user.sendMessage(Text.literal("Block cannot be found."), true);
+                sendMessage(user, "Block cannot be found.");
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -78,7 +77,7 @@ public class RemoteControl extends Item {
             if(blockState == null || blockState.getBlock() == Blocks.AIR || storedBlock != blockState.getBlock())
             {
                 clear_nbt(stackInHand);
-                user.sendMessage(Text.literal("Block cannot be found."), true);
+                sendMessage(user, "Block cannot be found.");
                 return TypedActionResult.fail(stackInHand);
             }
 
@@ -102,23 +101,18 @@ public class RemoteControl extends Item {
         return TypedActionResult.fail(stackInHand);
     }
 
-    @Override
-    public boolean hasGlint(ItemStack stack) {
-        return stack.hasNbt();
-    }
-
     private boolean canUseRemote(PlayerEntity user){
         if(user.isCreative())
             return true;
 
         if(remoteConfig.RangeOfRemote != -1 && !blockPosition.isWithinDistance(user.getPos(),remoteConfig.RangeOfRemote))
         {
-            user.sendMessage(Text.literal("Remote is out of configured range."), true);
+            sendMessage(user, "Remote is out of configured range.");
             return false;
         }
 
         if(user.totalExperience <= remoteConfig.XpPerUse && remoteConfig.XpPerUse != -1 && !user.isCreative()){
-            user.sendMessage(Text.literal("Not enough xp to use remote."), true);
+            sendMessage(user, "Not enough xp to use remote.");
             return false;
         }
 
@@ -159,5 +153,9 @@ public class RemoteControl extends Item {
         }
 
         super.appendTooltip(stack, world, tooltip, context);
+    }
+
+    public void sendMessage(PlayerEntity player, String message){
+        player.sendMessage(Text.literal(message), true);
     }
 }
