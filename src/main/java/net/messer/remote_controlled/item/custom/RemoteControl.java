@@ -9,6 +9,9 @@ import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -16,8 +19,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +50,7 @@ public class RemoteControl extends Item {
             if(foundBlockState == null || foundBlockState.getBlock() == Blocks.AIR)
                 return TypedActionResult.fail(stackInHand);
 
-            if(remoteConfig.BlockBlackList.contains(Registry.BLOCK.getId(foundBlockState.getBlock()).toString())){
+            if(remoteConfig.BlockBlackList.contains(Registries.BLOCK.getId(foundBlockState.getBlock()).toString())){
                 sendMessage(user, "Block is blacklisted from being used by a remote.");
                 return TypedActionResult.fail(stackInHand);
             }
@@ -63,7 +64,7 @@ public class RemoteControl extends Item {
         if(stackInHand.hasNbt()){
             this.read_npt(stackInHand);
             BlockHitResult lookingAt = (BlockHitResult) user.raycast(10,0,true);
-            var blockWorld = Objects.requireNonNull(world.getServer()).getWorld(RegistryKey.of(Registry.WORLD_KEY, new Identifier(blockWorldID)));
+            var blockWorld = Objects.requireNonNull(world.getServer()).getWorld(RegistryKey.of(RegistryKeys.WORLD, new Identifier(blockWorldID)));
 
             if(blockWorld == null) {
                 clear_nbt(stackInHand);
@@ -131,7 +132,7 @@ public class RemoteControl extends Item {
         var nbt = stack.getOrCreateNbt();
         nbt.putLong("pos", hitResult.getBlockPos().asLong());
         nbt.putString("world", worldOfBlock.getRegistryKey().getValue().toString());
-        nbt.putString("block", Registry.BLOCK.getId(blockState.getBlock()).toString());
+        nbt.putString("block", Registries.BLOCK.getId(blockState.getBlock()).toString());
         stack.setNbt(nbt);
     }
 
@@ -139,7 +140,7 @@ public class RemoteControl extends Item {
         var nbt = stack.getOrCreateNbt();
         this.blockPosition = BlockPos.fromLong(nbt.getLong("pos"));
         this.blockWorldID = nbt.getString("world");
-        this.storedBlock = Registry.BLOCK.get(new Identifier(nbt.getString("block")));
+        this.storedBlock = Registries.BLOCK.get(new Identifier(nbt.getString("block")));
     }
 
     @Override
